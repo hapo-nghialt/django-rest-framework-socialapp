@@ -1,0 +1,31 @@
+#upstream app_server {
+#    server unix:/home/forge/run/gunicorn.sock fail_timeout=0;
+#}
+server {
+    listen 80;
+    listen [::]:80;
+    # listen 443 ssl http2;
+    # listen [::]:443 ssl http2;
+    root /home/forge/rcrm.haposoft.com/;
+    index index.php index.html index.htm index.nginx-debian.html;
+
+    server_name rcrm.haposoft.com www.rcrm.haposoft.com;
+
+    access_log /home/forge/rcrm.haposoft.com/logs/nginx-access.log;
+    error_log /home/forge/rcrm.haposoft.com/logs/nginx-error.log;
+
+#    location /static/ {
+#        alias /home/forge/rcrm.haposoft.com/RCRM/candidate/static;
+#    }
+
+    location / {
+        try_files $uri @proxy_to_app;
+    }
+
+    location @proxy_to_app {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_pass http://app_server;
+    }
+}
